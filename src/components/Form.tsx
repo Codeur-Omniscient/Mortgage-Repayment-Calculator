@@ -1,7 +1,8 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormInputs } from "../types";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import icon from "../assets/icon-calculator.svg";
+import { AppContext } from "../context/context";
 
 const Form = () => {
   // Focus states
@@ -10,23 +11,38 @@ const Form = () => {
   const [rateFocus, setRateFocus] = useState(false);
 
   const {
+    data,
+    reset: formReset,
+    onCalculateInterest,
+    onCalculateRepayment,
+  } = useContext(AppContext);
+
+  const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm<FormInputs>({
-    defaultValues: {
-      amount: null,
-      years: null,
-      rate: null,
-      type: undefined,
-    },
+    defaultValues: data,
   });
 
-  const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    console.log(data);
-    reset();
+  const onSubmit: SubmitHandler<FormInputs> = (dataValue) => {
+    if (dataValue.type === "repayment") {
+      onCalculateRepayment(
+        dataValue.amount!,
+        dataValue.years!,
+        dataValue.rate!,
+      );
+    } else {
+      onCalculateInterest(dataValue.amount!, dataValue.years!, dataValue.rate!);
+    }
   };
+
+  useEffect(() => {
+    if (formReset) {
+      reset();
+    }
+  }, [formReset, reset]);
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
